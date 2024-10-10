@@ -1,0 +1,32 @@
+# Définir les fichiers source
+C_SOURCES = kernel.c
+OBJECTS = $(C_SOURCES:.c=.o)
+
+# Toutes les étapes : création de l'image OS et de l'image ISO
+all: os-image myos.iso
+
+# Combiner le bootloader et le noyau pour créer une image OS binaire
+os-image: bootloader.bin kernel.bin
+	cat bootloader.bin kernel.bin > os-image
+
+# Assembler le bootloader (en binaire)
+bootloader.bin: bootloader.asm
+	nasm -f bin bootloader.asm -o bootloader.bin
+
+# Compiler le noyau en fichier objet
+kernel.o: kernel.c
+	gcc -m32 -ffreestanding -c kernel.c -o kernel.o
+
+# Lier le noyau (création de kernel.bin)
+kernel.bin: kernel.o
+	ld -m elf_i386 -T linker.ld -o kernel.bin kernel.o
+
+# Créer l'image ISO bootable avec xorriso
+.PHONY: myos.iso
+myos.iso: os-image
+	xorriso -as mkisofs -b os-image -no-emul-boot -boot-load-size 4 -boot-info-table -o myos.iso os-image
+
+
+# Nettoyer les fichiers générés
+clean:
+	rm -f *.bin *.o os-image myos.iso

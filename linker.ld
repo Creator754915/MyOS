@@ -1,4 +1,4 @@
-/* linker.ld */
+/* Lieb les fichiers ensebmle => linker.ld */
 ENTRY(kmain)
 
 SECTIONS
